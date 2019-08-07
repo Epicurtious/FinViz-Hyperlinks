@@ -1,5 +1,8 @@
 FinViz Hyperlinks
 
+Questions:
+How many stocks do you want scraped at a time? Like the first 30? Since it refreshes, I wouldn't be able to just get each one cause they are constantly changing.
+
 Project progression:
 CHECK Get news link from one stock if it’s the same day
 

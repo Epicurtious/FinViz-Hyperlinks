@@ -18,17 +18,22 @@ months = {
 }
 
 todayDateTime = datetime.datetime.today()
-urlBase = 'https://finviz.com/'
-url1 = requests.get('https://finviz.com/screener.ashx?v=111&f=cap_small,sh_price_u20,sh_relvol_o3&o=-change')
-soup = bs(url1.content, 'lxml')
-first = soup.find(class_='table-dark-row-cp')
-link = first.td.a.get('href')
-#print(link)
-url2 = urlBase + link
-soup2 = bs(requests.get(url2).content, 'lxml')
-news = soup2.find(class_='fullview-news-outer')
-date = news.td.text.split()[0]
 year = todayDateTime.year - 2000
 today = months[todayDateTime.month] + todayDateTime.strftime("-%d-") + "%d" % year
-if date == today:
-    print(news.a['href'])
+urlBase = 'https://elite.finviz.com/'
+url1 = requests.get('https://elite.finviz.com/screener.ashx?v=152&f=cap_smallunder,sh_price_u20,ta_perf_dup&ft=4&o=-change&c=1,4,6,25,61,64')
+soup = bs(url1.content, 'lxml')
+table = soup.find(id='screener-content')
+rowLink = []
+for row in table.findAll(True, {'class':['table-dark-row-cp', 'table-light-row-cp']}):
+    link = urlBase + row.td.a['href']
+    info = row.findAll('td')
+    soup2 = bs(requests.get(link).content, 'lxml')
+    news = soup2.find(class_='fullview-news-outer')
+    date = news.td.text.split()[0]
+    if date == today:
+        print(news.a.text)
+        print(news.a['href'])
+        for text in info:
+            print(text.text)
+        print
