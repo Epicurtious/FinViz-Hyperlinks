@@ -1,6 +1,6 @@
 FinViz Hyperlinks
 
-Any questions on the "How To Run" part, text me or google is useful too.
+Any questions or problems on the "How To Run" part, text me or google is useful too.
 
 How To Run:
 Install Python 3.7.4(or the latest version)
