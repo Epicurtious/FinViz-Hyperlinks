@@ -19,7 +19,7 @@ pip install lxml
 
 Download 'WebScraper.py' from here.
 Put on desktop.
-Create a folder on your desktop called "CSvs"
+Create a folder on your desktop called "CSVs"
 
 When you run the program, it will ask you if you want to keep running it or if you want to run it one.
 Ctrl-C will stop the program at any time.
