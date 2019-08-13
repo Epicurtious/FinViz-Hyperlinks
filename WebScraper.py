@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 import csv
 from progress.bar import Bar
+import os.path
 
 months = {
     1:"Jan",
@@ -20,8 +21,8 @@ months = {
 }
 
 #returns false if hyperlink is in file
-def containsHyperlink(link):
-    with open('dataTest.csv') as data:
+def containsHyperlink(link, name):
+    with open(name) as data:
         read = csv.DictReader(data)
         for row in read:
             if row["Hyperlink"] == link:
@@ -89,13 +90,11 @@ while run == 0:
     print("Press 'ctrl-C' to stop the program")
     bar = Bar('Scraping',max=20)
     today = getFiscalDay()
-    fileName = "CSvs/" + today + ".csv"
-    try:
-        open(fileName, mode='r')
-    except:
-        with open(fileName, mode='w') as data:
+    fileName = "CSVs/" + today + ".csv"
+    if os.path.exists(fileName) == False:
+        with open(fileName, 'w+') as data:
             writer = csv.writer(data)
-            writer.writerow(["Date","Time","Ticker","Industry","Open Price","Market Cap","Shares Float","Gap","Price from Open","Relative Volume","News Headline","Hyperlink"])    
+            writer.writerow(["Date","Time","Ticker","Industry","Open Price","Market Cap","Shares Float","Gap","Price from Open","Relative Volume","News Headline","Hyperlink"])
     urlBase = 'https://elite.finviz.com/'
     url1 = requests.get('https://elite.finviz.com/screener.ashx?v=152&f=cap_smallunder,sh_price_u20,sh_relvol_o3,ta_perf_dup&ft=4&o=-changeopen&c=1,4,6,25,60,61,64,65')
     soup = bs(url1.content, 'lxml')
@@ -110,7 +109,7 @@ while run == 0:
             time = (dateAndTime[0] if len(dateAndTime) == 1 else dateAndTime[1])
             if len(dateAndTime) > 1:
                 date = dateAndTime[0]
-            if isFiscalDay(date, time) and containsHyperlink(news.a['href']) == False:
+            if isFiscalDay(date, time) and containsHyperlink(news.a['href'], fileName) == False:
                 price = float(info[7].text)
                 change = float(info[4].text.strip('%'))/100
                 openPrice = round(price*(1-change),2)
@@ -132,5 +131,5 @@ while run == 0:
         bar.next()
     bar.finish()
     print("Scraping Complete")
-    if continuous == 1:
+    if continuous == "1":
         run += 1
