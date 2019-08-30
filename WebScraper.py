@@ -2,11 +2,9 @@ from bs4 import BeautifulSoup as bs
 import requests
 from datetime import datetime
 import csv
-<<<<<<< HEAD
 import os.path
-=======
 from progress.bar import Bar
->>>>>>> parent of 6c5c279... Fixed a couple bugs
+import sys
 
 months = {
     1:"Jan",
@@ -24,8 +22,8 @@ months = {
 }
 
 #returns false if hyperlink is in file
-def containsHyperlink(link):
-    with open('dataTest.csv') as data:
+def containsHyperlink(link, fileName):
+    with open(fileName) as data:
         read = csv.DictReader(data)
         for row in read:
             if row["Hyperlink"] == link:
@@ -44,12 +42,20 @@ def getTodaySecond():
 #time format: XX:XXPM/XX:XXAM
 def getDaySecond(time):
     timeElements = time.split(':')
-    if timeElements[1].endswith("AM"):
-        hour = int(timeElements[0])
-        mins = int(timeElements[1].strip("AM"))
-    if timeElements[1].endswith("PM"):
-        hour = int(timeElements[0]) + 12
-        mins = int(timeElements[1].strip("PM"))
+    if int(timeElements[0]) != 12:
+        if timeElements[1].endswith("AM"):
+            hour = int(timeElements[0])
+            mins = int(timeElements[1].strip("AM"))
+        if timeElements[1].endswith("PM"):
+            hour = int(timeElements[0]) + 12
+            mins = int(timeElements[1].strip("PM"))
+    else:
+        if timeElements[1].endswith("PM"):
+            hour = int(timeElements[0])
+            mins = int(timeElements[1].strip("PM"))
+        if timeElements[1].endswith("AM"):
+            hour = 0
+            mins = int(timeElements[1].strip("AM"))
     seconds = hour * 60 * 60 + mins * 60
     return seconds
 
@@ -84,47 +90,6 @@ def isFiscalDay(day, time):
     else:
         return True if (today == day) else False
 
-<<<<<<< HEAD
-today = getFiscalDay()
-fileName = "CSVs/" + today + ".csv"
-if os.path.exists(fileName) == False:
-    with open(fileName, 'w+') as data:
-        writer = csv.writer(data)
-        writer.writerow(["Date","Time","Ticker","Industry","Open Price","Market Cap","Shares Float","Gap","Price from Open","Relative Volume","News Headline","Hyperlink"])
-urlBase = 'https://elite.finviz.com/'
-url1 = requests.get('https://elite.finviz.com/screener.ashx?v=152&f=cap_smallunder,sh_price_u20,sh_relvol_o3,ta_perf_dup&ft=4&o=-changeopen&c=1,4,6,25,60,61,64,65')
-soup = bs(url1.content, 'lxml')
-table = soup.find(id='screener-content')
-print(len(table.findAll(True, {'class':['table-dark-row-cp', 'table-light-row-cp']})))
-for row in table.findAll(True, {'class':['table-dark-row-cp', 'table-light-row-cp']}):
-    link = urlBase + row.td.a['href']
-    info = row.findAll('td')
-    soup2 = bs(requests.get(link).content, 'lxml')
-    for news in soup2.find(class_='fullview-news-outer').findAll('tr'):
-        dateAndTime = news.td.text.split()
-        time = (dateAndTime[0] if len(dateAndTime) == 1 else dateAndTime[1])
-        if len(dateAndTime) > 1:
-            date = dateAndTime[0]
-        if isFiscalDay(date, time) and containsHyperlink(news.a['href'], fileName) == False:
-            price = float(info[7].text)
-            change = float(info[4].text.strip('%'))/100
-            openPrice = round(price*(1-change),2)
-            priceStr = '$' + info[7].text
-            openPriceStr = '$%.2f' % openPrice
-            ticker = info[0].text
-            industry = info[1].text
-            marketCap = info[2].text
-            sharesFloat = info[3].text
-            gap = info[5].text
-            relativeVolume = info[6].text
-            headline = news.a.text
-            newsLink = news.a['href']
-            with open(fileName, mode='a') as data:
-                writer = csv.writer(data)
-                writer.writerow([date,time,ticker,industry,openPriceStr,marketCap,sharesFloat,gap,priceStr,relativeVolume,headline,newsLink])
-        elif isFiscalDay(date, time) == False:
-            break
-=======
 print("Type your choice and press enter:")
 print("0: Run until stopped")
 print("1: Run once")
@@ -134,49 +99,50 @@ while run == 0:
     print("Press 'ctrl-C' to stop the program")
     bar = Bar('Scraping',max=20)
     today = getFiscalDay()
-    fileName = "CSvs/" + today + ".csv"
-    try:
-        open(fileName, mode='r')
-    except:
-        with open(fileName, mode='w') as data:
+    if getattr(sys, 'frozen', False):
+        application_path = os.path.dirname(sys.executable)
+    elif __file__:
+        application_path = os.path.dirname(__file__)
+    fileName = application_path + "/CSVs/ " + today + ".csv"
+    if os.path.exists(fileName) == False:
+        with open(fileName, 'w') as data:
             writer = csv.writer(data)
-            writer.writerow(["Date","Time","Ticker","Industry","Open Price","Market Cap","Shares Float","Gap","Price from Open","Relative Volume","News Headline","Hyperlink"])    
+            writer.writerow(["Date","Time","Ticker","Industry","Open Price","Market Cap","Shares Float","Gap","Price from Open","Relative Volume","News Headline","Hyperlink"])
     urlBase = 'https://elite.finviz.com/'
     url1 = requests.get('https://elite.finviz.com/screener.ashx?v=152&f=cap_smallunder,sh_price_u20,sh_relvol_o3,ta_perf_dup&ft=4&o=-changeopen&c=1,4,6,25,60,61,64,65')
     soup = bs(url1.content, 'lxml')
     table = soup.find(id='screener-content')
-    print(len(table.findAll(True, {'class':['table-dark-row-cp', 'table-light-row-cp']})))
     for row in table.findAll(True, {'class':['table-dark-row-cp', 'table-light-row-cp']}):
         link = urlBase + row.td.a['href']
         info = row.findAll('td')
         soup2 = bs(requests.get(link).content, 'lxml')
-        for news in soup2.find(class_='fullview-news-outer').findAll('tr'):
-            dateAndTime = news.td.text.split()
-            time = (dateAndTime[0] if len(dateAndTime) == 1 else dateAndTime[1])
-            if len(dateAndTime) > 1:
-                date = dateAndTime[0]
-            if isFiscalDay(date, time) and containsHyperlink(news.a['href']) == False:
-                price = float(info[7].text)
-                change = float(info[4].text.strip('%'))/100
-                openPrice = round(price*(1-change),2)
-                priceStr = '$' + info[7].text
-                openPriceStr = '$%.2f' % openPrice
-                ticker = info[0].text
-                industry = info[1].text
-                marketCap = info[2].text
-                sharesFloat = info[3].text
-                gap = info[5].text
-                relativeVolume = info[6].text
-                headline = news.a.text
-                newsLink = news.a['href']
-                with open(fileName, mode='a') as data:
-                    writer = csv.writer(data)
-                    writer.writerow([date,time,ticker,industry,openPriceStr,marketCap,sharesFloat,gap,priceStr,relativeVolume,headline,newsLink])
-            elif isFiscalDay(date, time) == False:
-                break
+        if soup2.find(class_='fullview-news-outer') != None:
+            for news in soup2.find(class_='fullview-news-outer').findAll('tr'):
+                dateAndTime = news.td.text.split()
+                time = (dateAndTime[0] if len(dateAndTime) == 1 else dateAndTime[1])
+                if len(dateAndTime) > 1:
+                    date = dateAndTime[0]
+                if isFiscalDay(date, time) and containsHyperlink(news.a['href'], fileName) == False:
+                    price = float(info[7].text)
+                    change = float(info[4].text.strip('%'))/100
+                    openPrice = round(price*(1-change),2)
+                    priceStr = '$' + info[7].text
+                    openPriceStr = '$%.2f' % openPrice
+                    ticker = info[0].text
+                    industry = info[1].text
+                    marketCap = info[2].text
+                    sharesFloat = info[3].text
+                    gap = info[5].text
+                    relativeVolume = info[6].text
+                    headline = news.a.text
+                    newsLink = news.a['href']
+                    with open(fileName, mode='a') as data:
+                        writer = csv.writer(data)
+                        writer.writerow([date,time,ticker,industry,openPriceStr,marketCap,sharesFloat,gap,priceStr,relativeVolume,headline,newsLink])
+                elif isFiscalDay(date, time) == False:
+                    break
         bar.next()
     bar.finish()
     print("Scraping Complete")
-    if continuous == 1:
+    if continuous == "1":
         run += 1
->>>>>>> parent of 6c5c279... Fixed a couple bugs
